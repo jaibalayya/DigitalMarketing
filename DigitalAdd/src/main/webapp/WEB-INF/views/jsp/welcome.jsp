@@ -8,6 +8,6 @@
 <body>
 	<h2>Hello World, Spring MVC</h2>
 
-	<p>Welcome, ${name}</p>
+	<p>Welcome Hi, ${name}</p>
 </body>
 </html>
