@@ -1,4 +1,4 @@
-package com.digitaladd.spring.controller;
+package com.digitaladd.controller;
 
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
