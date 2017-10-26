@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.digitaladd.registration.dao.RegistrationDao;
+import com.digitaladd.registration.model.User;
+
 @Controller
 public class RequestController {
 	/*
@@ -43,18 +46,29 @@ public class RequestController {
 		return "registration.tiles";
 	}
 	
-
+	@RequestMapping(path= "/getCountries",method=RequestMethod.GET)
+	 public @ResponseBody List<User> getCountries(){
+		List<User> countriesList = null;
+		try{
+			countriesList = RegistrationDao.getInstance().getCountreies();
+			
+		}catch(Exception e){
+			System.out.println("RequestController > getCountries() > exception >"+e);
+		}		
+		 return countriesList; 
+	}
 
 	@RequestMapping(path= "/greet/{name}",method=RequestMethod.GET)
-	 public  @ResponseBody Map<String,String> foo(HttpServletRequest request,@PathVariable  String name) {
-		Map<String,String> list = new HashMap<String,String>();
+	 public @ResponseBody List<String> foo(HttpServletRequest request,@PathVariable  String name) {
+		List<String> list = new ArrayList<String>();
 		
-		list.put("a","dsfs");
-		list.put("b","dzf");
+		list.add("a");
+		list.add("b");
+		list.add("c");
 		
 		
 			 return list; 
-			 }
+	}
 	
 
 }
