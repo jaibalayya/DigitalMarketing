@@ -23,5 +23,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="D:/praveen/softwares/apache-tomcat-8.0.47/apache-tomcat-8.0.47/lib/catalina.jar"/>
+	<classpathentry kind="lib" path="D:/praveen/softwares/apache-tomcat-8.0.47/apache-tomcat-8.0.47/lib/mysql-connector-java-5.1.38.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

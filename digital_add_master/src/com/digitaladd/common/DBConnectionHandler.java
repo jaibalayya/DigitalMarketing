@@ -63,7 +63,7 @@ public class DBConnectionHandler {
         }
     }
     
-      public static Connection getLocalJDBCConnection() {
+      /*public static Connection getLocalJDBCConnection() {
         Connection conn = null;
         //log.info("getLocalJDBCConnection : start");
         try {
@@ -72,10 +72,10 @@ public class DBConnectionHandler {
         }catch (ClassNotFoundException cnfe) {
             //log.fatal("getLocalJDBCConnection :: ClassNotFoundException :"+cnfe);
         }catch (SQLException e) {
-            /*log.fatal("getLocalJDBCConnection :: SQLException : " + e);
-            throw new SystemException(e);*/
+            log.fatal("getLocalJDBCConnection :: SQLException : " + e);
+            throw new SystemException(e);
         }
         //log.info("getLocalJDBCConnection : end.");
         return conn;
-    }
+    }*/
 }

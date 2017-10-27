@@ -22,6 +22,7 @@ public class DataSourceHandler {
             ctx.close();
         } catch (Exception e) {
           // logger.fatal("configureDataSource > Exception:"+e);
+        	System.out.println("DataSourceHandler > configureDataSource() >"+e);
         }
        // logger.info("configureDataSource > end : this.dataSource="+ this.dataSource);
     }

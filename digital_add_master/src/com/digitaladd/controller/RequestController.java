@@ -46,19 +46,45 @@ public class RequestController {
 		return "registration.tiles";
 	}
 	
-	@RequestMapping(path= "/getCountries",method=RequestMethod.GET)
-	 public @ResponseBody List<User> getCountries(){
+	@RequestMapping(path= "/getallcountries",method=RequestMethod.GET)
+	 public @ResponseBody List<User> getAllCountries(){		
 		List<User> countriesList = null;
 		try{
 			countriesList = RegistrationDao.getInstance().getCountreies();
 			
 		}catch(Exception e){
-			System.out.println("RequestController > getCountries() > exception >"+e);
+			System.out.println("RequestController > getAllCountries() > exception >"+e);
+		}		
+		 return countriesList; 
+	}
+	
+	@RequestMapping(path= "/getallstates",method=RequestMethod.GET)
+	 public @ResponseBody List<User> getAllStates(HttpServletRequest request){		
+		List<User> countriesList = null;
+		String countryCode = request.getParameter("countryCode");
+		try{
+			countriesList = RegistrationDao.getInstance().getAllStates(countryCode);
+			
+		}catch(Exception e){
+			System.out.println("RequestController > getAllStates() > exception >"+e);
+		}		
+		 return countriesList; 
+	}
+	
+	@RequestMapping(path= "/getallcities",method=RequestMethod.GET)
+	 public @ResponseBody List<User> getAllCities(HttpServletRequest request){		
+		List<User> countriesList = null;
+		String stateCode = request.getParameter("stateCode");
+		try{
+			countriesList = RegistrationDao.getInstance().getAllCities(stateCode);
+			
+		}catch(Exception e){
+			System.out.println("RequestController > getAllCities() > exception >"+e);
 		}		
 		 return countriesList; 
 	}
 
-	@RequestMapping(path= "/greet/{name}",method=RequestMethod.GET)
+	/*@RequestMapping(path= "/greet/{name}",method=RequestMethod.GET)
 	 public @ResponseBody List<String> foo(HttpServletRequest request,@PathVariable  String name) {
 		List<String> list = new ArrayList<String>();
 		
@@ -68,7 +94,7 @@ public class RequestController {
 		
 		
 			 return list; 
-	}
+	}*/
 	
 
 }

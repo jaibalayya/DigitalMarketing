@@ -64,7 +64,7 @@
 												<span class="input-group-addon"> <i
 													class="material-icons">face</i>
 												</span> <input id="firstName" type="text" class="form-control"
-													placeholder="First Name">
+													placeholder="First Name" required="true">
 											</div>
 											<div class="input-group">
 												<span class="input-group-addon"> <i
@@ -76,47 +76,42 @@
 												<span class="input-group-addon"> <i
 													class="material-icons">email</i>
 												</span> <input id="Email" type="text" class="form-control"
-													placeholder="Email">
+													placeholder="Email"  required="true">
 											</div>
 											<div class="input-group">
 												<span class="input-group-addon"> <i
 													class="material-icons">email</i>
 												</span> <input id="mobile" type="text" class="form-control"
-													placeholder="Mobile Number">
+													placeholder="Mobile Number" required="true">
 											</div>
 											<div class="input-group">
                                                 <span class="input-group-addon">
                                                     <i class="material-icons">lock_outline</i>
                                                 </span>
-                                                <input id="password" type="password" placeholder="Password" class="form-control" />
+                                                <input id="password" type="password" placeholder="Password" class="form-control"  required="true"/>
                                             </div>
 											<div class="input-group">
 											<span class="input-group-addon"> <i class="material-icons">email</i></span>
 											<div class="row" style="padding-left: 20px;">
-												<select class="selectpicker" data-style="btn btn-primary btn-round" title="Single Select" data-size="7">
+												<select id="countries" class="selectpicker" onchange="getStates()" data-style="btn btn-primary btn-round" title="Single Select" data-size="7" required="true">
 													<option disabled selected>Select Country</option>
-													<option value="2">Foobar</option>
-													<option value="3">Is great</option>
+													
 												</select>
 											</div>
 											</div>											
 											<div class="input-group">
 											<span class="input-group-addon"> <i class="material-icons">email</i></span>
 											<div class="row" style="padding-left: 20px;">
-												<select class="selectpicker" data-style="btn btn-primary btn-round" title="Single Select" data-size="7">
+												<select id="states" class="selectpicker" onchange="getCities()" data-style="btn btn-primary btn-round" title="Single Select" data-size="7" required="true">
 													<option disabled selected>Select State</option>
-													<option value="2">Foobar</option>
-													<option value="3">Is great</option>
 												</select>
 											</div>
 											</div>
 											<div class="input-group" >
 											<span class="input-group-addon"> <i class="material-icons">email</i></span>
 											<div class="row" style="padding-left: 20px;">
-												<select class="selectpicker" data-style="btn btn-primary btn-round" title="Single Select" data-size="7">
+												<select id="cities" class="selectpicker" data-style="btn btn-primary btn-round" title="Single Select" data-size="7" >
 													<option disabled selected>Select City</option>
-													<option value="2">Foobar</option>
-													<option value="3">Is great</option>
 												</select>
 											</div>
 											</div>
@@ -124,7 +119,7 @@
 									
 										</div>
 										<div class="footer text-center">
-											<a href="javascript:void(0)" onclick="getCountries()" class="btn btn-primary btn-round">Register</a>
+											<a href="javascript:void(0)" onclick="" class="btn btn-primary btn-round">Register</a>
 										</div>
 									</form>
 								</div>
@@ -220,10 +215,19 @@
 
 <script type="text/javascript">
 
+$(function(){
+	getCountries();
+})
+
 function getCountries(){
-	$.ajax({url : <%=request.getContextPath()%>"/getAllCountries",success : function(data){
+	$.ajax({url : "<%=request.getContextPath()%>/getallcountries",success : function(data){
 		//data = JSON.parse(data);
-		alert(data);
+		
+		 $.each(data, function(i,val) {	
+			$('#countries').append('<option value="'+val.countryCode+'">'+val.countryName+'</option>');
+		}); 
+		$('#countries').selectpicker('refresh');
+		
 		/* $.each(data.cityList, function(i,val) {
 			var cityId = val.cityId;
 	 		var cityName = val.cityName;
@@ -237,4 +241,177 @@ function getCountries(){
 	}
 	});	
 }
+
+function getStates(){
+	var countryCode = $("#countries").find('option:selected').val();
+
+	if(countryCode != null && countryCode != "-1"){
+		$.ajax({url : "<%=request.getContextPath()%>/getallstates",
+			data : {countryCode : countryCode},success : function(data){		
+		
+			$('#states').find('option').remove();	
+			$('#states').append('<option value="-1" selected>Select State</option>');
+				
+			 $.each(data, function(i,val) {	
+				$('#states').append('<option value="'+val.stateCode+'">'+val.stateName+'</option>');
+			}); 
+			$('#states').selectpicker('refresh');
+			$('#cities').find('option').remove();	
+			$('#cities').append('<option value="-1" selected>Select City</option>');
+			$('#cities').selectpicker('refresh');
+		}
+		});
+	}else{
+		$('#states').find('option').remove();	
+		$('#states').append('<option value="-1" selected>Select State</option>');
+		$('#states').selectpicker('refresh');
+	}	
+}
+
+function getCities(){
+	var stateCode = $("#states").find('option:selected').val();
+
+	if(stateCode != null && stateCode != "-1"){
+		$.ajax({url : "<%=request.getContextPath()%>/getallcities",
+			data : {stateCode : stateCode},success : function(data){
+				
+			 $('#cities').find('option').remove();	
+			 $('#cities').append('<option value="-1" selected>Select State</option>');
+		
+			 $.each(data, function(i,val) {	
+				$('#cities').append('<option value="'+val.cityCode+'">'+val.cityName+'</option>');
+			}); 
+			$('#cities').selectpicker('refresh');
+		}
+		});
+	}else{
+		$('#cities').find('option').remove();	
+		$('#cities').append('<option value="-1" selected>Select City</option>');
+		$('#cities').selectpicker('refresh');
+	}
+}
+
+// to validate customer form inputs 
+$('#customerRegistration').validate({
+	    rules: {
+		      	"fullName": {
+			        required: true,
+			        minlength: 4,
+			        checkFullName:true,
+			        fullNamecheck:true,
+			        checkDot:true,
+			        checkSpaces:true
+		      	},
+			  	"mobileNo": {
+			        required: true,
+			        digits: true,
+			        minlength: 10,
+			        mobileNocheck:true
+		      	},
+		      	"email": {
+		      	   required: true,
+				   email: true,
+				   emailCheck:true
+				   //noSpace:true
+			  	},
+			 	"city":{
+			  	   required: true
+			  	},
+			  	"area":{
+			  		required: true
+			  	},
+			  	"addressType":{
+			  		required: true
+			  	},
+			  	"addressTypeOther":{
+			  		required: true
+			  	},
+			  	"address":{
+			  		required: true,
+			  		noSpace:true
+			  	},
+		     	"captcha":{
+		     	   required: true
+		    	},
+		    	"subscribe":{
+		    	   required: true
+		    	}
+	  		},
+	    messages: {
+			       "fullName": {
+				        required: 'Please enter your full name',
+				        minlength: 'Please enter minimum 4 characters'
+			       },
+			       "mobileNo": {
+				        required: 'Please enter valid 10 digit Mobile number',
+				        minlength: 'Please enter 10 digit Mobile number',
+				        digits: 'Mobile number accept only numbers'
+			       },
+			       "email": {
+			            required: 'Please enter email',
+				        email: 'Please enter valid Email address'
+				   },
+				   "city": {
+				        required: 'Please select city'
+				   },
+				   "area":{
+			  		   required: 'Please enter your area'
+				   },
+				   "addressType":{
+				  	   required: 'Please select address type'
+				   },
+			       "addressTypeOther": {
+				       required:'Please select address type'
+			       },
+				   "address":{
+				  	  required: 'Please provide your address',
+				   },
+			       "captcha":{
+			      	  required: 'Please enter captcha text'
+			       },
+			       "subscribe":{
+			      	  required: 'Please confirm above terms'
+			       }      
+			 },
+		    errorPlacement:
+			    function(error, element){
+			    if (element.attr("id") == "fullName" ){
+			    	document.getElementById("fullNameError").innerHTML="";
+		          	error.appendTo('#fullNameError');
+		        }else if (element.attr("id") == "mobileNo" ){
+			    	document.getElementById("mobileError").innerHTML="";
+		          	error.appendTo('#mobileError');
+		        }else if (element.attr("id") == "email" ){
+			    	document.getElementById("emailError").innerHTML="";
+		          	error.appendTo('#emailError');
+		        }else if (element.attr("id") == "city" ){
+			    	document.getElementById("cityError").innerHTML="";
+		          	error.appendTo('#cityError');
+		        }else if (element.attr("id") == "area" ){
+			    	document.getElementById("areaError").innerHTML="";
+		          	error.appendTo('#areaError');
+		        }else if (element.attr("id") == "addressTypeHome" ){
+			    	document.getElementById("addressTypeError").innerHTML="";
+		            error.appendTo('#addressTypeError');
+		        }else if (element.attr("id") == "addressTypeOffice" ){
+			    	document.getElementById("addressTypeError").innerHTML="";
+		            error.appendTo('#addressTypeError');
+		        }else if (element.attr("id") == "addressTypeOther" ){
+			    	document.getElementById("addressTypeOtherError").innerHTML="";
+		            error.appendTo('#addressTypeOtherError');
+		        }else if (element.attr("id") == "address" ){
+			    	document.getElementById("addressError").innerHTML="";
+		            error.appendTo('#addressError');
+		        }else if (element.attr("id") == "captcha" ){
+			    	document.getElementById("captchaError").innerHTML="";
+		            error.appendTo('#captchaError');
+		        }else if (element.attr("id") == "subscribe" ){
+			    	document.getElementById("subscribeError").innerHTML="";
+		            error.appendTo('#subscribeError');
+		        }
+		        }
+		});
+		
+
+
 </script>
