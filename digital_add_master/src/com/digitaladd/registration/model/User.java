@@ -18,7 +18,23 @@ public class User {
 	private String createdBy;
 	private String modifiedOn;
 	private String modifiedBy;
+	private String userTypeId;
+	private String uuid;
 	
+	
+	
+	public String getUserTypeId() {
+		return userTypeId;
+	}
+	public void setUserTypeId(String userTypeId) {
+		this.userTypeId = userTypeId;
+	}
+	public String getUuid() {
+		return uuid;
+	}
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
+	}
 	public String getFirstName() {
 		return firstName;
 	}

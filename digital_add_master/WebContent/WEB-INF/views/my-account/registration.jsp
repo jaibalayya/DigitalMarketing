@@ -1,4 +1,13 @@
+<style type="text/css">
+	.checkbox label, .radio label, label, .label-on-left, .label-on-right {
+	     color: red; 
+	}
+</style>
+
 <body class="off-canvas-sidebar">
+
+
+
 
 	<div class="wrapper wrapper-full-page">
 		<div class="full-page register-page" filter-color="black"
@@ -58,68 +67,75 @@
 										</button>
 										<h4>or be classical</h4>
 									</div>
-									<form class="form" method="" action="#">
+									<form class="form" name="registrationForm" id="registrationForm" method="POST" action="#">
 										<div class="card-content">
 											<div class="input-group">
 												<span class="input-group-addon"> <i
 													class="material-icons">face</i>
-												</span> <input id="firstName" type="text" class="form-control"
+												</span> <input id="firstName" name="firstName" type="text" class="form-control"
 													placeholder="First Name" required="true">
+													<span style="color: red" id="firstNameError"></span>
 											</div>
 											<div class="input-group">
 												<span class="input-group-addon"> <i
 													class="material-icons">face</i>
-												</span> <input id="lastName" type="text" class="form-control"
+												</span> <input id="lastName" name="lastName" type="text" class="form-control"
 													placeholder="Last Name">
+													<label style="color: red" id="lastNameError"></label>
 											</div>
 											<div class="input-group">
 												<span class="input-group-addon"> <i
 													class="material-icons">email</i>
-												</span> <input id="Email" type="text" class="form-control"
+												</span> <input id="email" name="email" type="text" class="form-control"
 													placeholder="Email"  required="true">
+													<span style="color: red" id="emailError"></span>
 											</div>
 											<div class="input-group">
 												<span class="input-group-addon"> <i
 													class="material-icons">email</i>
-												</span> <input id="mobile" type="text" class="form-control"
+												</span> <input id="mobile" name="mobile" type="text" class="form-control"
 													placeholder="Mobile Number" required="true">
+													<span style="color: red" id="mobileError"></span>
 											</div>
 											<div class="input-group">
                                                 <span class="input-group-addon">
                                                     <i class="material-icons">lock_outline</i>
                                                 </span>
-                                                <input id="password" type="password" placeholder="Password" class="form-control"  required="true"/>
+                                                <input id="password" name="password" type="password" placeholder="Password" class="form-control"  required="true"/>
+                                                <span style="color: red" id="passwordError"></span>
                                             </div>
 											<div class="input-group">
 											<span class="input-group-addon"> <i class="material-icons">email</i></span>
 											<div class="row" style="padding-left: 20px;">
-												<select id="countries" class="selectpicker" onchange="getStates()" data-style="btn btn-primary btn-round" title="Single Select" data-size="7" required="true">
-													<option disabled selected>Select Country</option>
-													
+												<select id="countries" name="countries" class="selectpicker" onchange="getStates()" data-style="btn btn-primary btn-round" title="Single Select" data-size="7" required="true">
+													<option value="" disabled selected>Select Country</option>													
 												</select>
+												<span style="color: red" id="countriesError"></span>
 											</div>
 											</div>											
 											<div class="input-group">
 											<span class="input-group-addon"> <i class="material-icons">email</i></span>
 											<div class="row" style="padding-left: 20px;">
-												<select id="states" class="selectpicker" onchange="getCities()" data-style="btn btn-primary btn-round" title="Single Select" data-size="7" required="true">
-													<option disabled selected>Select State</option>
+												<select id="states" name="states" class="selectpicker" onchange="getCities()" data-style="btn btn-primary btn-round" title="Single Select" data-size="7" required="true">
+													<option value="" disabled selected>Select State</option>
 												</select>
+												<span style="color: red" id="statesError"></span>
 											</div>
 											</div>
 											<div class="input-group" >
 											<span class="input-group-addon"> <i class="material-icons">email</i></span>
 											<div class="row" style="padding-left: 20px;">
-												<select id="cities" class="selectpicker" data-style="btn btn-primary btn-round" title="Single Select" data-size="7" >
-													<option disabled selected>Select City</option>
+												<select id="cities" name="cities" class="selectpicker" data-style="btn btn-primary btn-round" title="Single Select" data-size="7" >
+													<option value="" disabled selected>Select City</option>
 												</select>
+												<span style="color: red" id="citiesError"></span>
 											</div>
 											</div>
 											
 									
 										</div>
 										<div class="footer text-center">
-											<a href="javascript:void(0)" onclick="" class="btn btn-primary btn-round">Register</a>
+											<a href="javascript:void(0)" onclick="registration()" class="btn btn-primary btn-round">Register</a>
 										</div>
 									</form>
 								</div>
@@ -223,21 +239,12 @@ function getCountries(){
 	$.ajax({url : "<%=request.getContextPath()%>/getallcountries",success : function(data){
 		//data = JSON.parse(data);
 		
+		console.log(data);
+		
 		 $.each(data, function(i,val) {	
 			$('#countries').append('<option value="'+val.countryCode+'">'+val.countryName+'</option>');
 		}); 
 		$('#countries').selectpicker('refresh');
-		
-		/* $.each(data.cityList, function(i,val) {
-			var cityId = val.cityId;
-	 		var cityName = val.cityName;
-	 		var globalCity = "Hyderabad"
-			if(cityName.toLowerCase() == globalCity.toLowerCase()){
-				$('#globalCityName').append('<option value ="'+cityName+'" id="'+cityId+'" selected>'+cityName+'</option>');
-			}else{
-				$('#globalCityName').append('<option value ="'+cityName+'" id="'+cityId+'">'+cityName+'</option>');
-			}
-		}); */
 	}
 	});	
 }
@@ -245,25 +252,27 @@ function getCountries(){
 function getStates(){
 	var countryCode = $("#countries").find('option:selected').val();
 
-	if(countryCode != null && countryCode != "-1"){
+	if(countryCode != null && countryCode != ""){
 		$.ajax({url : "<%=request.getContextPath()%>/getallstates",
 			data : {countryCode : countryCode},success : function(data){		
 		
+				console.log(data);
+				
 			$('#states').find('option').remove();	
-			$('#states').append('<option value="-1" selected>Select State</option>');
+			$('#states').append('<option value="" selected>Select State</option>');
 				
 			 $.each(data, function(i,val) {	
 				$('#states').append('<option value="'+val.stateCode+'">'+val.stateName+'</option>');
 			}); 
 			$('#states').selectpicker('refresh');
 			$('#cities').find('option').remove();	
-			$('#cities').append('<option value="-1" selected>Select City</option>');
+			$('#cities').append('<option value="" selected>Select City</option>');
 			$('#cities').selectpicker('refresh');
 		}
 		});
 	}else{
 		$('#states').find('option').remove();	
-		$('#states').append('<option value="-1" selected>Select State</option>');
+		$('#states').append('<option value="" selected>Select State</option>');
 		$('#states').selectpicker('refresh');
 	}	
 }
@@ -275,8 +284,10 @@ function getCities(){
 		$.ajax({url : "<%=request.getContextPath()%>/getallcities",
 			data : {stateCode : stateCode},success : function(data){
 				
+				console.log(data);
+				
 			 $('#cities').find('option').remove();	
-			 $('#cities').append('<option value="-1" selected>Select State</option>');
+			 $('#cities').append('<option value="" selected>Select State</option>');
 		
 			 $.each(data, function(i,val) {	
 				$('#cities').append('<option value="'+val.cityCode+'">'+val.cityName+'</option>');
@@ -286,132 +297,211 @@ function getCities(){
 		});
 	}else{
 		$('#cities').find('option').remove();	
-		$('#cities').append('<option value="-1" selected>Select City</option>');
+		$('#cities').append('<option value="" selected>Select City</option>');
 		$('#cities').selectpicker('refresh');
 	}
 }
 
+function registration(){
+	var check = $('#registrationForm').valid();
+	if(check){		
+		$.ajax({url : "<%=request.getContextPath()%>/customer-registration",
+			data : $("#registrationForm").serialize(),success : function(data){
+				//data = JSON.parse(data);
+				alert(data);
+				alert(data.status);
+				
+				if(data.status == true){
+					swal({
+		                title: "Please Enter OTP",
+		                //text: "Please Enter OTP",
+		                html: '<div class="form-group"> <input id="otp" type="text" class="form-control" /> </div>',
+		                buttonsStyling: false,
+		                confirmButtonClass: "btn btn-success",
+		                type: "success"
+		            }).then(function(result){
+		            	checkOTP();	
+		            
+		                /* swal({
+		                    type: 'success',
+		                    html: 'You entered: <strong>' +
+		                        $('#input-field').val() +
+		                        '</strong>',
+		                    confirmButtonClass: 'btn btn-success',
+		                    buttonsStyling: false
+
+		                }) */
+					
+					
+					/* swal({
+		                title: "OK",
+		                text: "Registration ",
+		                buttonsStyling: false,
+		                confirmButtonClass: "btn btn-success",
+		                type: "success"
+		            }); */
+				});
+				}else if(data.status == false){
+					swal({
+		                title: "Oops !!!",
+		                text: "Some Error Occured, Please Try Again",
+		                buttonsStyling: false,
+		                confirmButtonClass: "btn btn-success",
+		                type: "success"
+		            });
+				}else if(data.status == "mobileExists"){
+					swal({
+		                title: "Oops !!!",
+		                text: "Mobile Number Already Existed. Try To Login Or Use Forgot Password",
+		                buttonsStyling: false,
+		                confirmButtonClass: "btn btn-success",
+		                type: "success"
+		            });
+				}
+				
+				/* var status = $.each(data).find("status").text();
+				
+				alert(status); */
+		}
+		});
+	}
+}
+	
+function checkOTP(){
+	var otp = $("#otp").val();
+	var mobile = $("#mobile").val();
+	
+	
+	$.ajax({url : "<%=request.getContextPath()%>/check-otp",
+		data : {otp : otp, mobile : mobile},success : function(data){
+			alert(data);
+			
+			if(data.status == true){
+			    swal({
+	                title: "OK",
+	                text: "Registration Completed Successfully.",
+	                buttonsStyling: false,
+	                confirmButtonClass: "btn btn-success",
+	                type: "success"
+	            }); 
+			}else if(data.status == false){
+				alert("Incorrect OTP Entered, Please Check It Once");
+				/* swal({
+	                title: "Oops !!!",
+	                text: "Incorrect OTP Entered, Please Check It Once",
+	                buttonsStyling: false,
+	                confirmButtonClass: "btn btn-success",
+	                type: "success"
+	            }); */
+			}else if(data.status == "exception"){
+				alert("Error Occured, Please Try Again.");
+			}
+		}			
+	});
+}
+
 // to validate customer form inputs 
-$('#customerRegistration').validate({
+$('#registrationForm').validate({
 	    rules: {
-		      	"fullName": {
-			        required: true,
-			        minlength: 4,
-			        checkFullName:true,
-			        fullNamecheck:true,
-			        checkDot:true,
-			        checkSpaces:true
-		      	},
-			  	"mobileNo": {
-			        required: true,
-			        digits: true,
-			        minlength: 10,
-			        mobileNocheck:true
+		      	"firstName": {
+			        required: true
+		      	},		      	
+		      	"lastName": {
+			        required: true
 		      	},
 		      	"email": {
 		      	   required: true,
 				   email: true,
 				   emailCheck:true
-				   //noSpace:true
 			  	},
-			 	"city":{
+			  	"mobile": {
+			        required: true,
+			        digits: true,
+			        minlength: 10,
+			        mobileNocheck:true
+		      	},
+			 	"password":{
 			  	   required: true
 			  	},
-			  	"area":{
+			  	"countries":{
 			  		required: true
 			  	},
-			  	"addressType":{
+			  	"states":{
 			  		required: true
 			  	},
-			  	"addressTypeOther":{
+			  	"cities":{
 			  		required: true
-			  	},
-			  	"address":{
-			  		required: true,
-			  		noSpace:true
-			  	},
-		     	"captcha":{
-		     	   required: true
-		    	},
-		    	"subscribe":{
-		    	   required: true
-		    	}
+			  	}
 	  		},
 	    messages: {
-			       "fullName": {
-				        required: 'Please enter your full name',
-				        minlength: 'Please enter minimum 4 characters'
+			       "firstName": {
+				        required: 'Please enter your first name'
 			       },
-			       "mobileNo": {
-				        required: 'Please enter valid 10 digit Mobile number',
-				        minlength: 'Please enter 10 digit Mobile number',
-				        digits: 'Mobile number accept only numbers'
+			       "lastName": {
+				        required: 'Please enter your last name'
 			       },
 			       "email": {
 			            required: 'Please enter email',
 				        email: 'Please enter valid Email address'
 				   },
-				   "city": {
-				        required: 'Please select city'
+			       "mobile": {
+				        required: 'Please enter valid 10 digit Mobile number',
+				        minlength: 'Please enter 10 digit Mobile number',
+				        digits: 'Mobile number accept only numbers'
+			       },			       
+				   "password": {
+				        required: 'Please enter password'
 				   },
-				   "area":{
-			  		   required: 'Please enter your area'
+				   "countries":{
+			  		   required: 'Please select country'
 				   },
-				   "addressType":{
-				  	   required: 'Please select address type'
+				   "states":{
+				  	   required: 'Please select state'
 				   },
-			       "addressTypeOther": {
-				       required:'Please select address type'
-			       },
-				   "address":{
-				  	  required: 'Please provide your address',
-				   },
-			       "captcha":{
-			      	  required: 'Please enter captcha text'
-			       },
-			       "subscribe":{
-			      	  required: 'Please confirm above terms'
-			       }      
+			       "cities": {
+				       required:'Please select city'
+			       }     
 			 },
 		    errorPlacement:
 			    function(error, element){
-			    if (element.attr("id") == "fullName" ){
-			    	document.getElementById("fullNameError").innerHTML="";
-		          	error.appendTo('#fullNameError');
-		        }else if (element.attr("id") == "mobileNo" ){
-			    	document.getElementById("mobileError").innerHTML="";
-		          	error.appendTo('#mobileError');
+			    if (element.attr("id") == "firstName" ){
+			    	document.getElementById("firstNameError").innerHTML="";
+		          	error.appendTo('#firstNameError');
+		        }else if (element.attr("id") == "lastName" ){
+			    	document.getElementById("lastNameError").innerHTML="";
+		          	error.appendTo('#lastNameError');
 		        }else if (element.attr("id") == "email" ){
 			    	document.getElementById("emailError").innerHTML="";
 		          	error.appendTo('#emailError');
-		        }else if (element.attr("id") == "city" ){
-			    	document.getElementById("cityError").innerHTML="";
-		          	error.appendTo('#cityError');
-		        }else if (element.attr("id") == "area" ){
-			    	document.getElementById("areaError").innerHTML="";
-		          	error.appendTo('#areaError');
-		        }else if (element.attr("id") == "addressTypeHome" ){
-			    	document.getElementById("addressTypeError").innerHTML="";
-		            error.appendTo('#addressTypeError');
-		        }else if (element.attr("id") == "addressTypeOffice" ){
-			    	document.getElementById("addressTypeError").innerHTML="";
-		            error.appendTo('#addressTypeError');
-		        }else if (element.attr("id") == "addressTypeOther" ){
-			    	document.getElementById("addressTypeOtherError").innerHTML="";
-		            error.appendTo('#addressTypeOtherError');
-		        }else if (element.attr("id") == "address" ){
-			    	document.getElementById("addressError").innerHTML="";
-		            error.appendTo('#addressError');
-		        }else if (element.attr("id") == "captcha" ){
-			    	document.getElementById("captchaError").innerHTML="";
-		            error.appendTo('#captchaError');
-		        }else if (element.attr("id") == "subscribe" ){
-			    	document.getElementById("subscribeError").innerHTML="";
-		            error.appendTo('#subscribeError');
+		        }else if (element.attr("id") == "mobile" ){
+			    	document.getElementById("mobileError").innerHTML="";
+		          	error.appendTo('#mobileError');
+		        }else if (element.attr("id") == "password" ){
+			    	document.getElementById("passwordError").innerHTML="";
+		          	error.appendTo('#passwordError');
+		        }else if (element.attr("id") == "countries" ){
+			    	document.getElementById("countriesError").innerHTML="";
+		          	error.appendTo('#countriesError');
+		        }else if (element.attr("id") == "states" ){
+			    	document.getElementById("statesError").innerHTML="";
+		            error.appendTo('#statesError');
+		        }else if (element.attr("id") == "cities" ){
+			    	document.getElementById("citiesError").innerHTML="";
+		            error.appendTo('#citiesError');
 		        }
 		        }
 		});
 		
-
+//to validate Email Address
+   $.validator.addMethod("emailCheck", function(email, element) {
+	    email = email.replace(/\s+/g, ""); 
+	    return this.optional(element) || email.match(/^[a-zA-Z0-9._]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,4}/);
+	}, 'Please enter valid email');
+	
+// to validate initial digit of Mobile No
+     $.validator.addMethod("mobileNocheck", function(mobileNo, element) {
+      mobileNo = mobileNo.replace(/\s+/g, ""); 
+       return this.optional(element) || mobileNo.match( /^[789]\d{9}$/);
+   	}, 'Mobile number starts with 9 or 8 or 7');
 
 </script>

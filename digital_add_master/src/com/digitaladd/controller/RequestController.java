@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -16,6 +17,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.digitaladd.registration.dao.RegistrationDao;
 import com.digitaladd.registration.model.User;
+import com.digitaladd.util.RandomGenerator;
+import com.digitaladd.util.ResourceUtility;
+
+import net.sf.json.JSONObject;
+
 
 @Controller
 public class RequestController {
@@ -42,7 +48,7 @@ public class RequestController {
 	}
 
 	@RequestMapping(value = { "/registration" }, method = RequestMethod.GET)
-	public String registration(ModelMap model) {
+	public String registration(ModelMap model) {		
 		return "registration.tiles";
 	}
 	
@@ -82,6 +88,94 @@ public class RequestController {
 			System.out.println("RequestController > getAllCities() > exception >"+e);
 		}		
 		 return countriesList; 
+	}
+	
+	@RequestMapping(path= "/customer-registration",method=RequestMethod.GET)
+	 public @ResponseBody JSONObject customerRegistration(HttpServletRequest request){
+		JSONObject json = new JSONObject();
+		String returnVal = "";
+		try{
+			String firstName = request.getParameter("firstName");
+			String lastName = request.getParameter("lastName");
+			String email = request.getParameter("email");
+			String mobile = request.getParameter("mobile");
+			String password = request.getParameter("password");
+			String countries = request.getParameter("countries");
+			String states = request.getParameter("states");
+			String cities = request.getParameter("cities");
+			
+			User user = new User();
+			user.setFirstName(firstName);
+			user.setLastName(lastName);
+			user.setEmail(email);
+			user.setMobile(mobile);
+			user.setPassword(password);
+			user.setCountryCode(countries);
+			user.setStateCode(states);
+			user.setCityCode(cities);
+						
+			User retUser = RegistrationDao.getInstance().checkUserExistOrNot(user);
+			
+			if(retUser == null || "".equals(retUser)){
+				// create user
+				StringBuffer buffer = new StringBuffer(ResourceUtility.getCommonConstant("user.uuid.starts.with"));
+				buffer.append(RandomGenerator.generateNumericRandom(Integer.parseInt(ResourceUtility.getCommonConstant("user.uuid.length"))));
+				
+				user.setUuid(buffer.toString());
+				
+				System.out.println(user.getUuid());
+				
+				boolean flag = RegistrationDao.getInstance().customerRegistration(user);
+				
+				if(flag){
+					boolean sendOtp = RegistrationDao.getInstance().saveOtp(user.getMobile());
+					
+					json.put("status", true);
+				}else{
+					json.put("status", false);
+				}	
+			}else{
+				// user exists
+				/*String mobStatus = retUser.getMobileStatus();
+				
+				if(mobStatus != null && "1".equalsIgnoreCase(mobStatus)){
+					returnVal = "mobileEsixts";
+				}else{
+					returnVal = "mobileNeedToVerify";
+				}*/
+				returnVal = "mobileEsixts";
+				json.put("status", "mobileExists");	
+			}
+		}catch(Exception e){
+			System.out.println("RequestController > customerRegistration() > exception >"+e);
+		}		
+		 return json; 
+	}
+	
+	@RequestMapping(path= "/check-otp",method=RequestMethod.GET)
+	 public @ResponseBody JSONObject checkOtp(HttpServletRequest request){
+		JSONObject json = new JSONObject();
+		try{
+			String otp = request.getParameter("otp");
+			String mobile = request.getParameter("mobile");
+						
+			boolean flag = RegistrationDao.getInstance().deleteOtp(otp, mobile);
+			
+			if(flag){
+				boolean statusChange = RegistrationDao.getInstance().changeUserStatus(mobile);
+				
+				if(statusChange){
+					json.put("status", true);
+				}else{
+					json.put("status", "exception");
+				}
+			}else{
+				json.put("status", false);	
+			}
+		}catch(Exception e){
+			System.out.println("RequestController > customerRegistration() > exception >"+e);
+		}		
+		 return json; 
 	}
 
 	/*@RequestMapping(path= "/greet/{name}",method=RequestMethod.GET)
