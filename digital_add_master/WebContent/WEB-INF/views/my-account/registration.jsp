@@ -2,13 +2,22 @@
 	.checkbox label, .radio label, label, .label-on-left, .label-on-right {
 	     color: red; 
 	}
+	
+	.swal2-hide {
+     -webkit-animation: ; 
+    animation: ; 
+}
 </style>
 
+<script>
+/* $("#checkButton").click(function(){alert("hhh")
+	checkOTP();
+})
+ */
+
+</script>
+
 <body class="off-canvas-sidebar">
-
-
-
-
 	<div class="wrapper wrapper-full-page">
 		<div class="full-page register-page" filter-color="black"
 			data-image="<%=request.getContextPath()%>/assets/img/register.jpg">
@@ -132,6 +141,8 @@
 											</div>
 											</div>
 											
+											
+											
 									
 										</div>
 										<div class="footer text-center">
@@ -220,7 +231,7 @@
 				<button id="twitter" class="btn btn-social btn-twitter btn-round">
 					<i class="fa fa-twitter"></i> &middot; 45
 				</button>
-				<button id="facebook" class="btn btn-social btn-facebook btn-round">
+				<button id="facebook" class="btn btn-social btn-facebook btn-round">	
 					<i class="fa fa-facebook-square"></i> &middot; 50
 				</button>
 			</li>
@@ -239,8 +250,6 @@ function getCountries(){
 	$.ajax({url : "<%=request.getContextPath()%>/getallcountries",success : function(data){
 		//data = JSON.parse(data);
 		
-		console.log(data);
-		
 		 $.each(data, function(i,val) {	
 			$('#countries').append('<option value="'+val.countryCode+'">'+val.countryName+'</option>');
 		}); 
@@ -255,9 +264,7 @@ function getStates(){
 	if(countryCode != null && countryCode != ""){
 		$.ajax({url : "<%=request.getContextPath()%>/getallstates",
 			data : {countryCode : countryCode},success : function(data){		
-		
-				console.log(data);
-				
+						
 			$('#states').find('option').remove();	
 			$('#states').append('<option value="" selected>Select State</option>');
 				
@@ -283,9 +290,7 @@ function getCities(){
 	if(stateCode != null && stateCode != "-1"){
 		$.ajax({url : "<%=request.getContextPath()%>/getallcities",
 			data : {stateCode : stateCode},success : function(data){
-				
-				console.log(data);
-				
+								
 			 $('#cities').find('option').remove();	
 			 $('#cities').append('<option value="" selected>Select State</option>');
 		
@@ -308,20 +313,22 @@ function registration(){
 		$.ajax({url : "<%=request.getContextPath()%>/customer-registration",
 			data : $("#registrationForm").serialize(),success : function(data){
 				//data = JSON.parse(data);
-				alert(data);
-				alert(data.status);
 				
 				if(data.status == true){
 					swal({
 		                title: "Please Enter OTP",
 		                //text: "Please Enter OTP",
-		                html: '<div class="form-group"> <input id="otp" type="text" class="form-control" /> </div>',
+		                html: '<div class="form-group"> <input id="otp" type="text" class="form-control" onkeydown="removeError()"/><div style="margin: 5px; color: red" id="otpError">'
+		                	+'</div> <button class="btn btn-success" id="checkButton">Check</button>'
+		                	+'<button class="btn btn-success" id="resendOtpButton">Resend OTP</button></div>',
 		                buttonsStyling: false,
 		                confirmButtonClass: "btn btn-success",
-		                type: "success"
+		                type: "success",
+		                dismissible:false,
+		                showConfirmButton: false
 		            }).then(function(result){
-		            	checkOTP();	
-		            
+		            	//checkOTP();	
+		            			            
 		                /* swal({
 		                    type: 'success',
 		                    html: 'You entered: <strong>' +
@@ -347,7 +354,8 @@ function registration(){
 		                text: "Some Error Occured, Please Try Again",
 		                buttonsStyling: false,
 		                confirmButtonClass: "btn btn-success",
-		                type: "success"
+		                type: "success",
+		                dismissible:false
 		            });
 				}else if(data.status == "mobileExists"){
 					swal({
@@ -355,7 +363,8 @@ function registration(){
 		                text: "Mobile Number Already Existed. Try To Login Or Use Forgot Password",
 		                buttonsStyling: false,
 		                confirmButtonClass: "btn btn-success",
-		                type: "success"
+		                type: "success",
+		                dismissible:false
 		            });
 				}
 				
@@ -366,38 +375,54 @@ function registration(){
 		});
 	}
 }
-	
-function checkOTP(){
+
+$(document).on("click", "#checkButton", function(event){
 	var otp = $("#otp").val();
 	var mobile = $("#mobile").val();
 	
-	
+	if(otp == null || otp == ""){
+		$("#otpError").html("Please Enter OTP");
+		return;
+	}
 	$.ajax({url : "<%=request.getContextPath()%>/check-otp",
-		data : {otp : otp, mobile : mobile},success : function(data){
-			alert(data);
-			
+		data : {otp : otp, mobile : mobile},success : function(data){			
 			if(data.status == true){
+				swal.close();
+				
 			    swal({
 	                title: "OK",
 	                text: "Registration Completed Successfully.",
 	                buttonsStyling: false,
 	                confirmButtonClass: "btn btn-success",
 	                type: "success"
+	            }).then(function(result){
+	            	window.location = '<%=request.getContextPath()%>/login';
 	            }); 
 			}else if(data.status == false){
-				alert("Incorrect OTP Entered, Please Check It Once");
-				/* swal({
-	                title: "Oops !!!",
-	                text: "Incorrect OTP Entered, Please Check It Once",
-	                buttonsStyling: false,
-	                confirmButtonClass: "btn btn-success",
-	                type: "success"
-	            }); */
+				$("#otpError").html("Incorrect OTP Entered, Please Check It Once");
 			}else if(data.status == "exception"){
-				alert("Error Occured, Please Try Again.");
+				$("#otpError").html("Error Occured, Please Try Again.");
 			}
 		}			
 	});
+});
+
+$(document).on("click", "#resendOtpButton", function(event){
+	var mobile = $("#mobile").val();
+	
+	$.ajax({url : "<%=request.getContextPath()%>/resend-otp",
+		data : {mobile : mobile},success : function(data){			
+			if(data.status == true){
+				$("#otpError").html("OTP Send to your mobile number successfully.");
+			}else{
+				$("#otpError").html("Error Occured, Please Try Again.");
+			}
+		}			
+	});
+});
+
+function removeError(){
+	$('#otpError').html('');
 }
 
 // to validate customer form inputs 

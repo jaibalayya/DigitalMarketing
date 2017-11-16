@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -93,7 +94,6 @@ public class RequestController {
 	@RequestMapping(path= "/customer-registration",method=RequestMethod.GET)
 	 public @ResponseBody JSONObject customerRegistration(HttpServletRequest request){
 		JSONObject json = new JSONObject();
-		String returnVal = "";
 		try{
 			String firstName = request.getParameter("firstName");
 			String lastName = request.getParameter("lastName");
@@ -121,13 +121,11 @@ public class RequestController {
 				StringBuffer buffer = new StringBuffer(ResourceUtility.getCommonConstant("user.uuid.starts.with"));
 				buffer.append(RandomGenerator.generateNumericRandom(Integer.parseInt(ResourceUtility.getCommonConstant("user.uuid.length"))));
 				
-				user.setUuid(buffer.toString());
-				
-				System.out.println(user.getUuid());
-				
+				user.setUuid(buffer.toString());				
 				boolean flag = RegistrationDao.getInstance().customerRegistration(user);
 				
 				if(flag){
+					boolean deleteOtp = RegistrationDao.getInstance().deleteOtp(null, user.getMobile());
 					boolean sendOtp = RegistrationDao.getInstance().saveOtp(user.getMobile());
 					
 					json.put("status", true);
@@ -143,7 +141,6 @@ public class RequestController {
 				}else{
 					returnVal = "mobileNeedToVerify";
 				}*/
-				returnVal = "mobileEsixts";
 				json.put("status", "mobileExists");	
 			}
 		}catch(Exception e){
@@ -174,6 +171,66 @@ public class RequestController {
 			}
 		}catch(Exception e){
 			System.out.println("RequestController > customerRegistration() > exception >"+e);
+		}		
+		 return json; 
+	}
+	
+	@RequestMapping(path= "/resend-otp",method=RequestMethod.GET)
+	 public @ResponseBody JSONObject resendOtp(HttpServletRequest request){
+		JSONObject json = new JSONObject();
+		try{
+			String mobile = request.getParameter("mobile");
+						
+			boolean flag = RegistrationDao.getInstance().deleteOtp(null, mobile);
+			
+			//if(flag){
+				boolean saveOtp = RegistrationDao.getInstance().saveOtp(mobile);
+				
+				if(saveOtp){
+					json.put("status", true);
+				}else{
+					json.put("status", "exception");
+				}
+			/*}else{
+				json.put("status", false);	
+			}*/
+		}catch(Exception e){
+			System.out.println("RequestController > customerRegistration() > exception >"+e);
+			json.put("status", "exception");
+		}		
+		 return json; 
+	}
+	
+	@RequestMapping(value = { "/login" }, method = RequestMethod.GET)
+	public String login(ModelMap model) {		
+		return "login.tiles";
+	}
+	
+	@RequestMapping(path= "/check-user-login",method=RequestMethod.GET)
+	 public @ResponseBody JSONObject checkUserLogin(HttpServletRequest request){
+		JSONObject json = new JSONObject();
+		try{
+			String userName = request.getParameter("userName");
+			String password = request.getParameter("password");
+						
+			User user = RegistrationDao.getInstance().checkUserLogin(userName, password);
+			
+			if(user == null){
+				json.put("status", false);
+			}else{
+				if(user.getMobileStatus() != null && user.getMobileStatus().equalsIgnoreCase(ResourceUtility.getCommonConstant("status.active"))){
+					json.put("status", true);
+					
+					HttpSession session = request.getSession();
+					
+					session.setAttribute("bean", user);
+				}else{
+					json.put("status", "mobileNeedToVerify");
+				}
+			}
+		}catch(Exception e){
+			System.out.println("RequestController > checkUserLogin() > exception >"+e);
+			json.put("status", "exception");
 		}		
 		 return json; 
 	}

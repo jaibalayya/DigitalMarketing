@@ -296,5 +296,48 @@ public class RegistrationDao {
 		}
 		return flag;
 	}
+	
+	public User checkUserLogin(String userName, String password){
+		Connection connection=null;
+		ResultSet rs = null;
+		PreparedStatement preparedStmt = null;
+		User retUser = null;
+		try {			
+			connection = DBConnectionHandler.getDBConnection();
+			preparedStmt = connection.prepareStatement(ResourceUtility.getSqlQuery("digitalAdd.getUserDataWithMobileAndPassword"));			
+			preparedStmt.setString(1, userName);
+			preparedStmt.setString(2, password);
+			
+			rs = preparedStmt.executeQuery();
+			
+			if (rs != null) {
+				while (rs.next()) {		
+					retUser = new User();
+					
+					retUser.setCityCode(rs.getString("city_id"));
+					retUser.setCountryCode(rs.getString("country_id"));
+					retUser.setCreatedOn(rs.getString("created_at"));
+					retUser.setEmail(rs.getString("email"));
+					retUser.setEmailStatus(rs.getString("email_verfication_status"));
+					retUser.setFirstName(rs.getString("fname"));
+					retUser.setLastName(rs.getString("lname"));
+					retUser.setMobile(rs.getString("mobile"));
+					retUser.setMobileStatus(rs.getString("mobile_verfication_status"));
+					retUser.setPassword(rs.getString("password"));
+					retUser.setStateCode(rs.getString("state_id"));
+					retUser.setModifiedOn(rs.getString("updated_at"));
+					retUser.setUserTypeId(rs.getString("user_type_id"));
+					retUser.setUuid(rs.getString("uuid"));					
+				}
+			}
+		}catch (SQLException sx) {
+			System.out.println("RegistrationDao > changeUserStatus() > sqlexception >"+sx);
+		}catch (Exception e) {
+			System.out.println("RegistrationDao > changeUserStatus() > exception >"+e);
+		}finally {
+			DBConnectionHandler.closeJDBCResoucrs(connection, preparedStmt, rs);
+		}
+		return retUser;
+	}
 
 }

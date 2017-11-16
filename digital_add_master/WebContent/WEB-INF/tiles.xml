@@ -17,5 +17,11 @@
  <definition name="registration.tiles"  extends="home">
 	<put-attribute name="Body" value="/WEB-INF/views/my-account/registration.jsp"></put-attribute>
 </definition>
+
+<definition name="login.tiles"  extends="home">
+	<put-attribute name="Body" value="/WEB-INF/views/my-account/login.jsp"></put-attribute>
+</definition>
+
+
  
 </tiles-definitions>

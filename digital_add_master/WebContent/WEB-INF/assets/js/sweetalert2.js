@@ -982,13 +982,13 @@
 
             // Closing modal by overlay click
             sweetContainer.onclick = function(e) {
-                if (e.target !== sweetContainer) {
+                /*if (e.target !== sweetContainer) {
                     return
                 }
                 if (params.allowOutsideClick) {
                     sweetAlert.closeModal(params.onClose)
                     reject('overlay')
-                }
+                }*/	// praveen
             }
 
             var $confirmButton = getConfirmButton()
@@ -1057,7 +1057,7 @@
 
                     stopEventPropagation(e)
                 } else {
-                    if (keyCode === 13 || keyCode === 32) {
+                    /*if (keyCode === 13 || keyCode === 32) { 
                         if (btnIndex === -1) {
                             // ENTER/SPACE clicked outside of a button.
                             if (params.focusCancel) {
@@ -1068,8 +1068,8 @@
                         }
                     } else if (keyCode === 27 && params.allowEscapeKey === true) {
                         sweetAlert.closeModal(params.onClose)
-                        reject('esc')
-                    }
+                        reject('esc') // praveen
+                    }*/
                 }
             }
 
