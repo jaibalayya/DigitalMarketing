@@ -21,6 +21,7 @@ import com.digitaladd.registration.model.User;
 import com.digitaladd.util.RandomGenerator;
 import com.digitaladd.util.ResourceUtility;
 
+import jdk.nashorn.internal.ir.RuntimeNode.Request;
 import net.sf.json.JSONObject;
 
 
@@ -45,7 +46,7 @@ public class RequestController {
 	@RequestMapping(value = { "/" }, method = RequestMethod.GET)
 	public String test(ModelMap model) {
 		model.addAttribute("name", "Melcow");
-		return "home";
+		return "home.tiles";
 	}
 
 	@RequestMapping(value = { "/registration" }, method = RequestMethod.GET)
@@ -235,17 +236,26 @@ public class RequestController {
 		 return json; 
 	}
 
-	/*@RequestMapping(path= "/greet/{name}",method=RequestMethod.GET)
-	 public @ResponseBody List<String> foo(HttpServletRequest request,@PathVariable  String name) {
-		List<String> list = new ArrayList<String>();
+	@RequestMapping(value = { "/dashboard" }, method = RequestMethod.GET)
+	public String dashboard(HttpServletRequest request, ModelMap model) {
+		HttpSession session = request.getSession();
 		
-		list.add("a");
-		list.add("b");
-		list.add("c");
+		if(session.getAttribute("bean") != null){
+			return "dashboard.tiles";
+		}else{
+			return "login.tiles";
+		}		
+	}
+	
+	@RequestMapping(value = { "/logout" }, method = RequestMethod.GET)
+	public String logout(HttpServletRequest request, ModelMap model) {
+		HttpSession session = request.getSession();
 		
-		
-			 return list; 
-	}*/
+		if(session.getAttribute("bean") != null){
+			session.removeAttribute("bean");
+		}
+		return "home.tiles";
+	}
 	
 
 }

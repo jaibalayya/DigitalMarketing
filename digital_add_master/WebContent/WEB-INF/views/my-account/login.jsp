@@ -6,7 +6,7 @@
 
 <body class="off-canvas-sidebar">
     <div class="wrapper wrapper-full-page">
-        <div class="full-page login-page" filter-color="black" data-image="../../assets/img/login.jpg">
+        <div class="full-page login-page" filter-color="black" data-image="<%=request.getContextPath() %>/assets/img/login.jpg">
             <!--   you can change the color of the filter page using: data-color="blue | purple | green | orange | red | rose " -->
             <div class="content">
                 <div class="container">
@@ -35,7 +35,7 @@
                                                 <i class="material-icons">face</i>
                                             </span>
                                             <div class="form-group label-floating">
-                                                <label class="control-label">User Name</label>
+                                                <label class="control-label">User Name / Mobile</label>
                                                 <input type="text" class="form-control" id="userName" name="userName">
                                                 <span style="color: red" id="userNameError"></span>
                                             </div>

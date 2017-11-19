@@ -22,6 +22,8 @@
 	<put-attribute name="Body" value="/WEB-INF/views/my-account/login.jsp"></put-attribute>
 </definition>
 
-
+<definition name="dashboard.tiles"  extends="home">
+	<put-attribute name="Body" value="/WEB-INF/views/dashboard.jsp"></put-attribute>
+</definition>
  
 </tiles-definitions>
