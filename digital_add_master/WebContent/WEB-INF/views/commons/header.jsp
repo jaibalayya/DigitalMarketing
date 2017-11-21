@@ -94,6 +94,12 @@
 	$().ready(function() {
 		demo.checkFullPageBackgroundImage();
 
+		var testUser = '<%= session.getAttribute("bean") %>';
+		
+		if(testUser == null || testUser == "null" || testUser == ""){	
+			$("#userMenuNav").show();
+		}
+		
 		setTimeout(function() {
 			// after 1000 ms we add the class animated to the login/register card
 			$('.card').removeClass('card-hidden');
@@ -101,8 +107,9 @@
 	});
 </script>
     <body>
-    	<c:if test="${session.bean ne null and session.bean ne ''}">
-	    	<nav class="navbar navbar-primary navbar-transparent navbar-absolute">
+<%--     	<c:if test="${session.bean eq null or session.bean eq ''}"> --%>
+    	<%-- <c:if test="${session.bean ne null or session.bean ne ''}"> --%>
+	    	<nav class="navbar navbar-primary navbar-transparent navbar-absolute" id="userMenuNav" style="display: none;">
 	        <div class="container">
 	            <div class="navbar-header">
 	                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navigation-example-2">
@@ -139,7 +146,7 @@
 	            </div>
 	        </div>
 	    </nav>
-    </c:if>
+    <%-- </c:if> --%>
     
     <div class="fixed-plugin">
     <div class="dropdown show-dropdown">

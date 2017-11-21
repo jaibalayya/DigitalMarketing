@@ -8,11 +8,8 @@
         Tip 3: you can change the color of the sidebar with data-background-color="white | black"
     -->
             <div class="logo">
-                <a href="http://www.creative-tim.com/" class="simple-text logo-mini">
-                    CT
-                </a>
-                <a href="http://www.creative-tim.com/" class="simple-text logo-normal">
-                    Creative Tim
+                <a href="javascript:void(0)" class="simple-text logo-normal" style="padding-left: 70px;">
+                    Digital Add
                 </a>
             </div>
             <div class="sidebar-wrapper">
@@ -31,21 +28,26 @@
                         <div class="collapse" id="collapseExample">
                             <ul class="nav">
                                 <li>
-                                    <a href="#">
-                                        <span class="sidebar-mini">MP</span>
+                                    <a href="#" style="padding-left: 50px;">
+                                        <span class="sidebar-normal">My Packages</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" style="padding-left: 50px;">
+                                        <!-- <span class="sidebar-mini">MP</span> -->
                                         <span class="sidebar-normal">My Profile</span>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="#">
-                                        <span class="sidebar-mini">EP</span>
-                                        <span class="sidebar-normal">Edit Profile</span>
+                                    <a href="#" style="padding-left: 50px;">
+                                        <!-- <span class="sidebar-mini">EP</span> -->
+                                        <span class="sidebar-normal">Change Password</span>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="#">
-                                        <span class="sidebar-mini">S</span>
-                                        <span class="sidebar-normal">Settings</span>
+                                    <a href="<%=request.getContextPath() %>/logout" style="padding-left: 50px;">
+                                        <!-- <span class="sidebar-mini">S</span> -->
+                                        <span class="sidebar-normal">Logout</span>
                                     </a>
                                 </li>
                             </ul>
