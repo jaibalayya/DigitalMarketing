@@ -2,6 +2,10 @@
 	 .form-group label {
 	     color: red; 
 	}
+	
+	.login-page .card-login .btn-wd {
+	    min-width: 100px;
+	}
 </style>
 
 <body class="off-canvas-sidebar">
@@ -51,8 +55,10 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <input id="uuid" type="hidden"/>
                                     <div class="footer text-center">
                                         <button type="button" onclick="checkLogin()" class="btn btn-rose btn-simple btn-wd btn-lg">Let's go</button>
+                                        <button type="button" onclick="openForgotPasswordPopup()" class="btn btn-rose btn-simple btn-wd btn-lg">Forgot Password</button>
                                     </div>
                                 </div>
                             </form>
@@ -74,9 +80,12 @@
 					if(data.status == true){
 						window.location = '<%=request.getContextPath()%>/dashboard'
 					}else if(data.status == "mobileNeedToVerify"){
+						if(data.uuid != null && data.uuid != undefined){
+							$("#uuid").val(data.uuid);
+						}
 						swal({
 			                title: "Please Enter OTP",
-			                html: '<div class="form-group"> <input id="otp" type="text" class="form-control" onkeydown="removeError()"/><div style="margin: 5px; color: red" id="otpError">'
+			                html: '<div class="form-group"> <input id="otp" type="text" class="form-control" onkeydown="removeError(this.id)"/><div style="margin: 5px; color: red" id="otpError">'
 			                	+'</div> <button class="btn btn-success" id="checkButton">Check</button>'
 			                	+'<button class="btn btn-success" id="resendOtpButton">Resend OTP</button></div>',
 			                buttonsStyling: false,
@@ -95,8 +104,48 @@
 		}
 	}
 	
-	function removeError(){
-		$('#otpError').html('');
+	function openForgotPasswordPopup(){
+		swal({
+            title: "Forgot Password",
+            html: '<div class="form-group"> <input id="forgotMobile" maxlength="10" type="text" class="form-control" onkeydown="removeError(this.id)" placeholder="Enter Mobile Number Here"/><div style="margin: 5px; color: red" id="forgotMobileError">'
+            	+'</div> <button class="btn btn-success" id="forgotPasswordButton">Get Password</button>'
+            	+'<button class="btn btn-success" id="cancelButton">Cancel</button></div>',
+            buttonsStyling: false,
+            confirmButtonClass: "btn btn-success",
+            //type: "success",
+            dismissible:false,
+            showConfirmButton: false
+        })
+	}
+	
+	$(document).on("click", "#cancelButton", function(event){
+		swal.close();		
+	});
+	
+	$(document).on("click", "#forgotPasswordButton", function(event){
+		var mobile = $("#forgotMobile").val();
+		
+		if(mobile != null && mobile != "" && mobile.length >= 10){
+			$.ajax({url : "<%=request.getContextPath()%>/forgot-password",
+				data : {mobile : mobile},success : function(data){			
+					if(data.status == true){
+						$("#loginError").html("Credentials Send To Your Mobile Successfully, Please Login");
+						
+						swal.close();
+					}else if(data.status == "Mobile Not Exists"){
+						$("#forgotMobileError").html("Please Enter Valid Mobile Number");
+					}else{
+						$("#forgotMobileError").html("Error Occured, Please Try Again.");
+					}
+				}			
+			});
+		}else{
+			$("#forgotMobileError").html('Please Enter 10 Digit Mobile Number');
+		}		
+	});
+	
+	function removeError(id){
+		$('#'+id+'Error').html('');
 	}
 	
 	$(document).on("click", "#checkButton", function(event){
@@ -108,7 +157,7 @@
 			return;
 		}
 		$.ajax({url : "<%=request.getContextPath()%>/check-otp",
-			data : {otp : otp, mobile : mobile},success : function(data){			
+			data : {otp : otp, mobile : mobile, doLogin : "doLogin"},success : function(data){			
 				if(data.status == true){
 					swal.close();
 					
@@ -134,7 +183,7 @@
 		var mobile = $("#userName").val();
 		
 		$.ajax({url : "<%=request.getContextPath()%>/resend-otp",
-			data : {mobile : mobile},success : function(data){			
+			data : {mobile : mobile, uuid : $("#uuid").val()},success : function(data){			
 				if(data.status == true){
 					$("#otpError").html("OTP Send to your mobile number successfully.");
 				}else{

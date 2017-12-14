@@ -20,9 +20,17 @@ public class User {
 	private String modifiedBy;
 	private String userTypeId;
 	private String uuid;
+	private String address;
 	
 	
 	
+	
+	public String getAddress() {
+		return address;
+	}
+	public void setAddress(String address) {
+		this.address = address;
+	}
 	public String getUserTypeId() {
 		return userTypeId;
 	}

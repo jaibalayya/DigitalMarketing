@@ -103,7 +103,7 @@
 												<span class="input-group-addon"> <i
 													class="material-icons">email</i>
 												</span> <input id="mobile" name="mobile" type="text" class="form-control"
-													placeholder="Mobile Number" required="true">
+													placeholder="Mobile Number" required="true" maxlength="10">
 													<span style="color: red" id="mobileError"></span>
 											</div>
 											<div class="input-group">
@@ -141,6 +141,7 @@
 											</div>
 											</div>
 										</div>
+										<input id="uuid" type="hidden"/>
 										<div class="footer text-center">
 											<a href="javascript:void(0)" onclick="registration()" class="btn btn-primary btn-round">Register</a>
 										</div>
@@ -207,7 +208,7 @@ function getCities(){
 			data : {stateCode : stateCode},success : function(data){
 								
 			 $('#cities').find('option').remove();	
-			 $('#cities').append('<option value="" selected>Select State</option>');
+			 $('#cities').append('<option value="" selected>Select City</option>');
 		
 			 $.each(data, function(i,val) {	
 				$('#cities').append('<option value="'+val.cityCode+'">'+val.cityName+'</option>');
@@ -230,6 +231,10 @@ function registration(){
 				//data = JSON.parse(data);
 				
 				if(data.status == true){
+					if(data.uuid != null && data.uuid != undefined){
+						$("#uuid").val(data.uuid);
+					}
+					
 					swal({
 		                title: "Please Enter OTP",
 		                //text: "Please Enter OTP",
@@ -326,7 +331,7 @@ $(document).on("click", "#resendOtpButton", function(event){
 	var mobile = $("#mobile").val();
 	
 	$.ajax({url : "<%=request.getContextPath()%>/resend-otp",
-		data : {mobile : mobile},success : function(data){			
+		data : {mobile : mobile, uuid : $("#uuid").val()},success : function(data){			
 			if(data.status == true){
 				$("#otpError").html("OTP Send to your mobile number successfully.");
 			}else{

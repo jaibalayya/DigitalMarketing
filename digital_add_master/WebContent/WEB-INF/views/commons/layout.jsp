@@ -9,7 +9,11 @@
 <body>   
       <tiles:insertAttribute name="Header"></tiles:insertAttribute>
      
+      <tiles:insertAttribute name="Left"></tiles:insertAttribute>
+     
       <tiles:insertAttribute name="Body"></tiles:insertAttribute>
+      
+      
     
       <tiles:insertAttribute name="Footer"></tiles:insertAttribute>
 </body>

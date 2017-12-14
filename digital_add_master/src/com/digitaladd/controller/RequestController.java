@@ -1,18 +1,13 @@
 package com.digitaladd.controller;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.hibernate.engine.transaction.jta.platform.internal.SynchronizationRegistryBasedSynchronizationStrategy;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -21,8 +16,11 @@ import com.digitaladd.registration.dao.RegistrationDao;
 import com.digitaladd.registration.model.User;
 import com.digitaladd.util.RandomGenerator;
 import com.digitaladd.util.ResourceUtility;
+import com.digitaladd.util.sms.SMSAuditingVO;
+import com.digitaladd.util.sms.SMSService;
+import com.digitaladd.util.sms.SMSTemplateVO;
+import com.digitaladd.util.sms.SMSVO;
 
-import jdk.nashorn.internal.ir.RuntimeNode.Request;
 import net.sf.json.JSONObject;
 
 
@@ -116,7 +114,7 @@ public class RequestController {
 			user.setStateCode(states);
 			user.setCityCode(cities);
 						
-			User retUser = RegistrationDao.getInstance().checkUserExistOrNot(user);
+			User retUser = RegistrationDao.getInstance().checkUserExistOrNot(user.getMobile());
 			
 			if(retUser == null || "".equals(retUser)){
 				// create user
@@ -128,9 +126,15 @@ public class RequestController {
 				
 				if(flag){
 					boolean deleteOtp = RegistrationDao.getInstance().deleteOtp(null, user.getMobile());
-					boolean sendOtp = RegistrationDao.getInstance().saveOtp(user.getMobile());
+					
+					String otp = RandomGenerator.generateNumericRandom(Integer.parseInt(ResourceUtility.getCommonConstant("user.otp.length")));
+					boolean saveOtp = RegistrationDao.getInstance().saveOtp(user.getMobile(), otp);
+					if(saveOtp){
+						boolean sendSms = sendOtpSMS(user.getMobile(), otp, user.getUuid());
+					}
 					
 					json.put("status", true);
+					json.put("uuid", user.getUuid());
 				}else{
 					json.put("status", false);
 				}	
@@ -157,6 +161,7 @@ public class RequestController {
 		try{
 			String otp = request.getParameter("otp");
 			String mobile = request.getParameter("mobile");
+			String doLogin = request.getParameter("doLogin");
 						
 			boolean flag = RegistrationDao.getInstance().deleteOtp(otp, mobile);
 			
@@ -165,6 +170,13 @@ public class RequestController {
 				
 				if(statusChange){
 					json.put("status", true);
+					
+					if(doLogin != null && !"".equalsIgnoreCase(doLogin)){
+						User user = RegistrationDao.getInstance().checkUserExistOrNot(mobile);						
+						HttpSession session = request.getSession();
+						
+						session.setAttribute("bean", user);
+					}
 				}else{
 					json.put("status", "exception");
 				}
@@ -182,11 +194,16 @@ public class RequestController {
 		JSONObject json = new JSONObject();
 		try{
 			String mobile = request.getParameter("mobile");
+			String uuid = request.getParameter("uuid");
 						
 			boolean flag = RegistrationDao.getInstance().deleteOtp(null, mobile);
 			
 			//if(flag){
-				boolean saveOtp = RegistrationDao.getInstance().saveOtp(mobile);
+				String otp = RandomGenerator.generateNumericRandom(Integer.parseInt(ResourceUtility.getCommonConstant("user.otp.length")));
+				boolean saveOtp = RegistrationDao.getInstance().saveOtp(mobile, otp);
+				if(saveOtp){
+					boolean sendSms = sendOtpSMS(mobile, otp, uuid);
+				}
 				
 				if(saveOtp){
 					json.put("status", true);
@@ -228,6 +245,7 @@ public class RequestController {
 					session.setAttribute("bean", user);
 				}else{
 					json.put("status", "mobileNeedToVerify");
+					json.put("uuid", user.getUuid());
 				}
 			}
 		}catch(Exception e){
@@ -256,6 +274,216 @@ public class RequestController {
 			session.removeAttribute("bean");
 		}
 		return "home.tiles";
+	}
+	
+	@RequestMapping(path= "/forgot-password",method=RequestMethod.GET)
+	 public @ResponseBody JSONObject forgotPassword(HttpServletRequest request){
+		JSONObject json = new JSONObject();
+		try{
+			String mobile = request.getParameter("mobile");
+						
+			User retUser = RegistrationDao.getInstance().checkUserExistOrNot(mobile);
+			
+			if(retUser != null && !"".equals(retUser)){
+				SMSTemplateVO smsTemplateVO=new SMSTemplateVO();
+				SMSService service=new SMSService();
+				SMSAuditingVO smsAuditingVO=new SMSAuditingVO();
+				SMSVO smsvo=new SMSVO();
+				smsTemplateVO = service.getSmsTemplateByTemplateId(ResourceUtility.getCommonConstant("sms.template.id.forgot.password"));				
+				
+				String smsTemplateId = smsTemplateVO.getSmsTemplateId();
+				
+				if(smsTemplateId!=null && !"".equals(smsTemplateId)){
+					smsAuditingVO.setSmsTemplateId(smsTemplateId);
+					smsvo.setSmsTemplateId(smsTemplateId);
+				}
+				String smsbody = smsTemplateVO.getSmsTemplate();
+				if(smsbody!=null && !"".equals(smsbody)){
+					smsbody = smsbody.replace("{0}", retUser.getMobile());
+					smsbody = smsbody.replace("{1}", retUser.getPassword());
+					
+					System.out.println("RequestController > forgotPassword > smsTemp====>"+smsbody);
+					smsAuditingVO.setSms(smsbody);
+				}		
+				// save sms in audit table
+				smsAuditingVO.setUuid(retUser.getUuid());
+				service.saveSmsAuditing(smsAuditingVO);
+				
+				// send sms
+				List<String> vCode= new ArrayList<String>();
+				List<String> mNumber = new ArrayList<String>();
+				
+				vCode.add(retUser.getMobile());
+				vCode.add(retUser.getPassword());
+				mNumber.add(retUser.getMobile());
+				
+				smsvo.setSmsTo(mNumber);
+				smsvo.setParameters(vCode);				
+				
+				boolean flag = service.sendSMS(smsvo);
+				
+				json.put("status", flag);
+				
+				System.out.println("RequestController > forgotPassword > send sms > "+flag);
+			}else{
+				json.put("status", "Mobile Not Exists");
+			}
+		}catch(Exception e){
+			System.out.println("RequestController > forgotPassword() > exception >"+e);
+			json.put("status", "exception");
+		}		
+		 return json; 
+	}
+	
+	public boolean sendOtpSMS(String mobile, String verificationCode, String uuid){
+		try{
+			SMSService service=new SMSService();
+			SMSVO smsvo=new SMSVO();
+			SMSTemplateVO smsTemplateVO=new SMSTemplateVO();
+			SMSAuditingVO smsAuditingVO=new SMSAuditingVO();
+			
+			smsTemplateVO = service.getSmsTemplateByTemplateId(ResourceUtility.getCommonConstant("sms.template.id.send.otp"));
+			
+			String smsTemplateId = smsTemplateVO.getSmsTemplateId();
+			if(smsTemplateId!=null && !"".equals(smsTemplateId)){
+				smsAuditingVO.setSmsTemplateId(smsTemplateId);
+				smsvo.setSmsTemplateId(smsTemplateId);
+			}
+			String smsBody= smsTemplateVO.getSmsTemplate();
+			if(smsBody!=null && !"".equals(smsBody)){
+				smsBody=smsBody.replace("{0}",verificationCode);
+			}
+			smsAuditingVO.setSms(smsBody);
+			smsAuditingVO.setUuid(uuid);
+			service.saveSmsAuditing(smsAuditingVO);
+			
+			List<String> vCode= new ArrayList<String>();
+			List<String> mNumber = new ArrayList<String>();
+			
+			vCode.add(verificationCode);
+			mNumber.add(mobile);
+			
+			smsvo.setSmsTo(mNumber);
+			smsvo.setParameters(vCode);
+			service.sendSMS(smsvo);
+		}catch (Exception e) {
+			System.out.println("RequestController > sendOtpSMS() > exception >"+e);
+		}
+		return true;
+	}
+	
+	@RequestMapping(value = { "/my-profile" }, method = RequestMethod.GET)
+	public String myProfile(HttpServletRequest request, ModelMap model){
+		String returnVal = "login.tiles";
+		try{
+			HttpSession session = request.getSession();
+			
+			if(session.getAttribute("bean") != null){
+				User user = (User) session.getAttribute("bean");
+				//User user = RegistrationDao.getInstance().checkUserExistOrNot(usr.getMobile());
+				model.addAttribute("user", user);
+				
+				returnVal = "my-profile.tiles";
+			}else{
+				returnVal = "login.tiles";
+			}
+		}catch(Exception e){
+			System.out.println("RequestController > myProfile() > exception >"+e);
+		}
+		return returnVal;
+	}
+	
+	@RequestMapping(path= "/update-profile",method=RequestMethod.GET)
+	 public @ResponseBody JSONObject updateProfile(HttpServletRequest request){
+		JSONObject json = new JSONObject();
+		try{
+			HttpSession session = request.getSession();
+			
+			if(session != null){
+				User usr = (User) session.getAttribute("bean");
+				
+				String firstName = request.getParameter("firstName");
+				String lastName = request.getParameter("lastName");
+				String email = request.getParameter("email");
+				String mobile = request.getParameter("mobile");
+				String countries = request.getParameter("countries");
+				String states = request.getParameter("states");
+				String cities = request.getParameter("cities");
+				String address = request.getParameter("address");
+				
+				User user = new User();
+				user.setFirstName(firstName);
+				user.setLastName(lastName);
+				user.setEmail(email);
+				user.setMobile(mobile);
+				user.setCountryCode(countries);
+				user.setStateCode(states);
+				user.setCityCode(cities);
+				user.setAddress(address);
+				user.setUuid(usr.getUuid());
+							
+				boolean flag = RegistrationDao.getInstance().updateProfile(user);
+				
+				if(flag){
+					User newUser = RegistrationDao.getInstance().checkUserExistOrNot(usr.getMobile());
+					session.setAttribute("bean", newUser);
+					
+					json.put("status", true);
+				}else{
+					json.put("status", false);	
+				}
+			}else{
+				json.put("status", false);
+			}
+		}catch(Exception e){
+			System.out.println("RequestController > updateProfile() > exception >"+e);
+		}		
+		 return json; 
+	}
+	
+	@RequestMapping(value = { "/change-password" }, method = RequestMethod.GET)
+	public String changePassword(HttpServletRequest request, ModelMap model){
+		HttpSession session = request.getSession();
+		
+		if(session.getAttribute("bean") != null){
+			return "changePassword.tiles";
+		}else{
+			return "login.tiles";
+		}		
+	}
+	
+	@RequestMapping(path= "/update-password",method=RequestMethod.GET)
+	 public @ResponseBody JSONObject updatePassword(HttpServletRequest request){
+		JSONObject json = new JSONObject();
+		try{
+			HttpSession session = request.getSession();			
+			User user = (User) session.getAttribute("bean");
+			
+			String currentPassword = request.getParameter("currentPassword");
+			String newPassword = request.getParameter("newPassword");
+						
+			boolean flag = RegistrationDao.getInstance().checkPassword(user.getUuid(), currentPassword);
+			
+			if(flag){
+				boolean updatePwd = RegistrationDao.getInstance().updatePassword(user.getUuid(), newPassword);
+				
+				if(updatePwd){
+					json.put("status", true);
+					
+					if(session.getAttribute("bean") != null){
+						session.removeAttribute("bean");
+					}
+				}else{
+					json.put("status", "exception");
+				}
+			}else{
+				json.put("status", "passwordWrong");
+			}	
+		}catch(Exception e){
+			System.out.println("RequestController > updatePassword() > exception >"+e);
+			json.put("status", "exception");
+		}		
+		 return json; 
 	}
 	
 
